@@ -1336,6 +1336,11 @@ def construct_arguments(
     compilation_mode = get_compilation_mode_opts(ctx, toolchain)
     rustc_flags.add(compilation_mode.opt_level, format = "--codegen=opt-level=%s")
     rustc_flags.add(compilation_mode.debug_info, format = "--codegen=debuginfo=%s")
+    # Cargo's dev and test profiles keep debug assertions and overflow checks at every opt-level, and its release
+    # profile drops both; rustc alone ties them to opt-level 0. fastbuild and dbg are the dev profile, opt release.
+    if ctx.var["COMPILATION_MODE"] != "opt":
+        rustc_flags.add("--codegen=debug-assertions=on")
+        rustc_flags.add("--codegen=overflow-checks=on")
     rustc_flags.add(compilation_mode.strip_level, format = "--codegen=strip=%s")
 
     # For determinism to help with build distribution and such

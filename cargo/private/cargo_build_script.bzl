@@ -534,11 +534,9 @@ def _cargo_build_script_impl(ctx):
         cc_c_args, cc_cxx_args, cc_env = get_cc_compile_args_and_env(cc_toolchain, feature_configuration)
         include = cc_env.get("INCLUDE")
         if include:
-            if toolchain.exec_triple.str.find("windows") > 0:
-                path_separator = ";"
-            else:
-                path_separator = ":"
-            env["INCLUDE"] = path_separator.join(_pwd_paths(include.split(path_separator)))
+            # INCLUDE is read only by MSVC-compatible compilers, which split it on ";" on every host
+            # (clang-cl cross-compiling from Linux included).
+            env["INCLUDE"] = ";".join(_pwd_paths(include.split(";")))
 
         toolchain_tools.append(cc_toolchain.all_files)
 
@@ -569,14 +567,15 @@ def _cargo_build_script_impl(ctx):
         # that doing so is more likely to hurt than help. If you need to change
         # ARFLAGS, make changes to cc-rs.
 
-    # Inform build scripts of rustc flags
+    # Inform build scripts of rustc flags, the toolchain's own extra flags included, as Cargo does
+    # with RUSTFLAGS: a build script then sees the target features rustc compiles with (crt-static).
     # https://github.com/rust-lang/cargo/issues/9600
     env["CARGO_ENCODED_RUSTFLAGS"] = "\\x1f".join([
         # Allow build scripts to locate the generated sysroot
         "--sysroot=${{pwd}}/{}".format(toolchain.sysroot),
         # Keep build scripts from baking the exec root into their output
         "--remap-path-prefix=${pwd}=.",
-    ] + ctx.attr.rustc_flags)
+    ] + toolchain.extra_rustc_flags + ctx.attr.rustc_flags)
 
     for f in ctx.attr.crate_features:
         env["CARGO_FEATURE_" + f.upper().replace("-", "_")] = "1"

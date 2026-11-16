@@ -19,6 +19,10 @@ load(
     _rust_clippy = "rust_clippy",
 )
 load(
+    "//rust/private:check.bzl",
+    _rust_check_aspect = "rust_check_aspect",
+)
+load(
     "//rust:rust_clippy_aspect.bzl",
     _rust_clippy_aspect = "rust_clippy_aspect",
 )
@@ -137,6 +141,9 @@ clippy_flags = _clippy_flags
 # See @rules_rust//rust/private:clippy.bzl for a complete description.
 
 rust_clippy_aspect = _rust_clippy_aspect
+# See @rules_rust//rust/private:check.bzl for a complete description.
+
+rust_check_aspect = _rust_check_aspect
 # See @rules_rust//rust/private:clippy.bzl for a complete description.
 
 rust_clippy = _rust_clippy

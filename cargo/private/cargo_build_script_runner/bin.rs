@@ -528,8 +528,16 @@ impl Args {
 }
 
 fn get_target_env_vars<P: AsRef<Path>>(rustc: &P) -> Result<BTreeMap<String, String>, String> {
-    // As done by Cargo when constructing a cargo::core::compiler::build_context::target_info::TargetInfo.
+    // As done by Cargo when constructing a cargo::core::compiler::build_context::target_info::TargetInfo:
+    // the cfgs reflect the rustc flags the crate compiles with (CARGO_CFG_TARGET_FEATURE has
+    // crt-static under -Ctarget-feature=+crt-static). The sysroot and path remapping name the
+    // exec root, and neither changes a cfg.
+    let flags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap_or_default();
+    let flags = flags
+        .split("\\x1f")
+        .filter(|flag| !flag.is_empty() && !flag.starts_with("--sysroot=") && !flag.starts_with("--remap-path-prefix="));
     let output = Command::new(rustc.as_ref())
+        .args(flags)
         .arg("--print=cfg")
         .arg(format!(
             "--target={}",
