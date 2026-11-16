@@ -623,6 +623,16 @@ def _generate_hub_and_spokes(
                   "must ship a `lockfile = ...` because repinning is not " +
                   "supported across module boundaries.").format(cfg.name))
         repin = False
+
+        # A lockfile is rendered with its own module as the root, so its main-repository labels
+        # ("@@//...") name the lockfile's repository. A consumer reads them there, not in its own.
+        rebased = tag_path.get_child("cargo-bazel-lock.json")
+        module_ctx.file(
+            rebased,
+            module_ctx.read(lockfile).replace("\"@@//", "\"@@{}//".format(cfg.lockfile.repo_name)),
+            executable = False,
+        )
+        lockfile = rebased
     else:
         repin = not lockfile or determine_repin(
             repository_ctx = module_ctx,
