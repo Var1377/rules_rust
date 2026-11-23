@@ -84,6 +84,7 @@ impl BuildScriptOutput {
             "rustc-link-lib" => Some(BuildScriptOutput::LinkLib(param)),
             "rustc-link-search" => Some(BuildScriptOutput::LinkSearch(param)),
             "rustc-cfg" => Some(BuildScriptOutput::Cfg(param)),
+            "rustc-check-cfg" => Some(BuildScriptOutput::Flags(format!("--check-cfg={param}"))),
             "rustc-flags" => Some(BuildScriptOutput::Flags(param)),
             "rustc-link-arg" => Some(BuildScriptOutput::LinkArg(param)),
             "rustc-env" => Some(BuildScriptOutput::Env(param)),
